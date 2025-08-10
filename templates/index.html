@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Link Detector</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        :root {
+            /* Web3 Dark Theme (default) */
+            --dark-bg: #0f0f1e;
+            --darker-bg: #070714;
+            --card-bg: #151528;
+            --card-header: #1c1c35;
+            --text-primary: #f0f0ff;
+            --text-secondary: #a0a0c0;
+            --text-muted: #6c6c8a;
+            --border-color: #2a2a45;
+            --input-bg: #1a1a30;
+            --input-border: #2a2a45;
+            --primary-color: #6c5ce7;
+            --primary-hover: #8075e5;
+            --primary-gradient: linear-gradient(135deg, #6c5ce7, #a55eea);
+            --warning-color: #ffa502;
+            --warning-hover: #ffb732;
+            --danger-color: #ff6b6b;
+            --success-color: #2ed573;
+            --info-color: #54a0ff;
+            --accent-color: #a55eea;
+            --accent-hover: #b77eea;
+            --accent-gradient: linear-gradient(135deg, #a55eea, #ff6b6b);
+            --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            --glow-effect: 0 0 15px rgba(108, 92, 231, 0.5);
+            --transition-speed: 0.3s;
+        }
+
+        /* Light theme variables (not applied by default) */
+        .light-theme {
+            --dark-bg: #f5f5ff;
+            --darker-bg: #e8e8f5;
+            --card-bg: #ffffff;
+            --card-header: #f0f0fa;
+            --text-primary: #151528;
+            --text-secondary: #454570;
+            --text-muted: #6c6c8a;
+            --border-color: #d0d0e0;
+            --input-bg: #ffffff;
+            --input-border: #d0d0e0;
+            --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            --glow-effect: 0 0 15px rgba(108, 92, 231, 0.2);
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            background-image: radial-gradient(circle at 10% 20%, rgba(108, 92, 231, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(165, 94, 234, 0.1) 0%, transparent 40%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            line-height: 1.6;
+            transition: background-color var(--transition-speed) ease;
+        }
+
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .app-header {
+            text-align: center;
+            padding: 2.5rem 0 3.5rem;
+            color: var(--text-primary);
+            position: relative;
+        }
+
+        .app-header::after {
+            content: '';
+            position: absolute;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+        }
+
+        .app-title {
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            font-size: 2.5rem;
+            letter-spacing: -0.5px;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .app-subtitle {
+            color: var(--text-secondary);
+            font-weight: 400;
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .card {
+            border: none;
+            border-radius: 16px;
+            background-color: var(--card-bg);
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--glow-effect);
+        }
+
+        .card-header {
+            background-color: var(--card-header);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            border-radius: 16px 16px 0 0 !important;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header i {
+            margin-right: 0.75rem;
+            font-size: 1.2rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card-body {
+            padding: 1.75rem;
+            color: var(--text-primary);
+        }
+
+        .form-control {
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
+            transition: all var(--transition-speed) ease;
+            font-size: 1rem;
+            height: auto;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.25), inset 0 1px 2px rgba(0, 0, 0, 0.1);
+            background-color: var(--input-bg);
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        .form-control::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .form-text {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .input-group-text {
+            background-color: var(--card-header);
+            border-color: var(--input-border);
+            color: var(--text-secondary);
+            border-radius: 12px 0 0 12px;
+            padding: 0.75rem 1rem;
+        }
+
+        .input-group .form-control {
+            border-radius: 0 12px 12px 0;
+        }
+
+        .btn {
+            padding: 0.875rem 1.75rem;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all var(--transition-speed) ease;
+            position: relative;
+            overflow: hidden;
+            font-size: 1rem;
+            letter-spacing: 0.3px;
+            border: none;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(-100%);
+            transition: transform var(--transition-speed) ease;
+        }
+
+        .btn:hover::before {
+            transform: translateX(0);
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+        }
+
+        .btn-primary:hover,
+        .btn-primary:focus {
+            background: var(--primary-gradient);
+            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(108, 92, 231, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: linear-gradient(135deg, rgba(108, 92, 231, 0.5), rgba(165, 94, 234, 0.5));
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #ff9f43);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(255, 165, 2, 0.4);
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, var(--warning-color), #ff9f43);
+            box-shadow: 0 6px 20px rgba(255, 165, 2, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .btn-warning:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(255, 165, 2, 0.4);
+        }
+
+        .btn-outline-danger {
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+            background: transparent;
+        }
+
+        .btn-outline-danger:hover {
+            background-color: var(--danger-color);
+            color: var(--text-primary);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            background: transparent;
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            color: var(--text-primary);
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+        }
+
+        .alert {
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            background-color: var(--card-header);
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alert::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary-gradient);
+        }
+
+        .alert-danger {
+            background-color: rgba(255, 107, 107, 0.1);
+            border-color: rgba(255, 107, 107, 0.2);
+            color: var(--text-primary);
+        }
+
+        .alert-danger::before {
+            background: linear-gradient(to bottom, var(--danger-color), #ff9f43);
+        }
+
+        .alert-success {
+            background-color: rgba(46, 213, 115, 0.1);
+            border-color: rgba(46, 213, 115, 0.2);
+            color: var(--text-primary);
+        }
+
+        .alert-success::before {
+            background: linear-gradient(to bottom, var(--success-color), #54a0ff);
+        }
+
+        .alert-warning {
+            background-color: rgba(255, 165, 2, 0.1);
+            border-color: rgba(255, 165, 2, 0.2);
+            color: var(--text-primary);
+        }
+
+        .alert-warning::before {
+            background: linear-gradient(to bottom, var(--warning-color), #ff6b6b);
+        }
+
+        .alert-info {
+            background-color: rgba(84, 160, 255, 0.1);
+            border-color: rgba(84, 160, 255, 0.2);
+            color: var(--text-primary);
+        }
+
+        .alert-info::before {
+            background: linear-gradient(to bottom, var(--info-color), var(--primary-color));
+        }
+
+        .spinner-border {
+            width: 1.5rem;
+            height: 1.5rem;
+            margin-right: 0.75rem;
+            border-width: 0.2em;
+            color: var(--primary-color);
+        }
+
+        .result-icon {
+            font-size: 2.25rem;
+            margin-right: 1.25rem;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .alert-danger .result-icon {
+            background: linear-gradient(135deg, var(--danger-color), #ff9f43);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .alert-success .result-icon {
+            background: linear-gradient(135deg, var(--success-color), #54a0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .result-content {
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 4rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            padding-bottom: 2rem;
+            position: relative;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: -2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--primary-gradient);
+            border-radius: 2px;
+            opacity: 0.5;
+        }
+
+        /* Theme toggle button */
+        #themeToggle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            background-color: var(--card-bg);
+            transition: all var(--transition-speed) ease;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #themeToggle::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--primary-gradient);
+            opacity: 0;
+            transition: opacity var(--transition-speed) ease;
+            z-index: 0;
+        }
+
+        #themeToggle:hover {
+            color: var(--text-primary);
+            transform: rotate(15deg) translateY(-2px);
+            box-shadow: var(--glow-effect);
+        }
+
+        #themeToggle:hover::before {
+            opacity: 0.1;
+        }
+
+        #themeToggle i {
+            font-size: 1.2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Dark scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+
+        /* Selection color */
+        ::selection {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Badge styles */
+        .badge {
+            padding: 0.5rem 0.75rem;
+            font-weight: 500;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            letter-spacing: 0.3px;
+        }
+
+        .badge.bg-danger {
+            background: linear-gradient(135deg, var(--danger-color), #ff9f43) !important;
+        }
+
+        .badge.bg-success {
+            background: linear-gradient(135deg, var(--success-color), #54a0ff) !important;
+        }
+
+        .badge.bg-secondary {
+            background: var(--card-header) !important;
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container main-container">
+        <div class="d-flex justify-content-end mb-2">
+            <button id="themeToggle" class="btn btn-sm" title="Toggle Light/Dark Mode">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+
+        <div class="app-header">
+            <h1 class="app-title">Phishing Link Detector</h1>
+            <p class="app-subtitle">Check if a URL is potentially malicious using advanced security APIs</p>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-search"></i>
+                <span>URL Checker</span>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <label for="urlInput" class="form-label">Enter a URL to check</label>
+                    <div class="input-group mb-2">
+                        <span class="input-group-text"><i class="fas fa-link"></i></span>
+                        <input type="url" class="form-control" id="urlInput" placeholder="https://example.com">
+                    </div>
+                    <div class="form-text">We'll check this URL against PhishTank and VirusTotal databases.</div>
+                </div>
+
+                <button class="btn btn-primary" id="checkButton" onclick="checkURL()">
+                    <i class="fas fa-shield-alt me-2"></i> Check URL Safety
+                </button>
+
+                <!-- Loading indicator -->
+                <div id="loadingIndicator" class="mt-4" style="display: none;">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span class="ms-2">Analyzing URL security...</span>
+                    </div>
+                </div>
+
+                <!-- Results area -->
+                <div id="result" class="mt-4" style="display: none;">
+                    <div class="alert" role="alert" id="resultMessage"></div>
+                    <button class="btn btn-warning" onclick="addToBlacklist()" id="blacklistBtn" style="display: none;">
+                        <i class="fas fa-ban me-2"></i> Add to Local Blacklist
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i>
+                <span>About This Tool</span>
+            </div>
+            <div class="card-body">
+                <p>This tool helps you identify potentially malicious websites by checking URLs against:</p>
+                <div class="row mt-4 mb-4">
+                    <div class="col-md-4 mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <div
+                                style="width: 40px; height: 40px; border-radius: 10px; background: rgba(108, 92, 231, 0.1); display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                <i class="fas fa-fish" style="color: var(--primary-color); font-size: 1.2rem;"></i>
+                            </div>
+                            <h5 class="mb-0">PhishTank</h5>
+                        </div>
+                        <p class="text-secondary small">Database of known phishing sites maintained by the community</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <div
+                                style="width: 40px; height: 40px; border-radius: 10px; background: rgba(108, 92, 231, 0.1); display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                <i class="fas fa-shield-virus"
+                                    style="color: var(--primary-color); font-size: 1.2rem;"></i>
+                            </div>
+                            <h5 class="mb-0">VirusTotal</h5>
+                        </div>
+                        <p class="text-secondary small">Multi-engine virus and URL scanner with comprehensive analysis
+                        </p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <div
+                                style="width: 40px; height: 40px; border-radius: 10px; background: rgba(108, 92, 231, 0.1); display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                                <i class="fas fa-ban" style="color: var(--primary-color); font-size: 1.2rem;"></i>
+                            </div>
+                            <h5 class="mb-0">Local Blacklist</h5>
+                        </div>
+                        <p class="text-secondary small">Your personal database of manually added suspicious URLs</p>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-3 mb-3">
+                    <div class="d-flex">
+                        <i class="fas fa-info-circle me-2 mt-1"></i>
+                        <div>
+                            <p class="mb-1"><strong>About VirusTotal API</strong></p>
+                            <p class="mb-0 small">For full VirusTotal functionality, you need to set a VirusTotal API
+                                key as an environment variable. Without an API key, the application will still work but
+                                will only use PhishTank and local checks.</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="mb-0"><strong>Note:</strong> No security check is 100% accurate. Always exercise caution when
+                    visiting unfamiliar websites.</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Phishing Link Detector &copy; 2025 | Powered by <span
+                    style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 600;">TRIADA</span>
+            </p>
+        </div>
+    </div>
+    <script>
+        let currentURL = '';
+
+        // Function to validate URL format
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+
+        async function checkURL() {
+            const urlInput = document.getElementById('urlInput');
+            const url = urlInput.value.trim();
+            currentURL = url;
+
+            // Basic validation
+            if (!url) {
+                showError('Please enter a URL to check');
+                return;
+            }
+
+            // Add http:// prefix if missing
+            let processedUrl = url;
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                processedUrl = 'https://' + url;
+                currentURL = processedUrl;
+            }
+
+            if (!isValidUrl(processedUrl)) {
+                showError('Please enter a valid URL');
+                return;
+            }
+
+            // Show loading indicator and hide previous results
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const resultDiv = document.getElementById('result');
+            const checkButton = document.getElementById('checkButton');
+
+            loadingIndicator.style.display = 'block';
+            resultDiv.style.display = 'none';
+            checkButton.disabled = true;
+
+            try {
+                // Set a timeout for the fetch request (30 seconds)
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+                const response = await fetch('/check_url', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: processedUrl }),
+                    signal: controller.signal
+                }).catch(error => {
+                    if (error.name === 'AbortError') {
+                        throw new Error('Request timed out. The server took too long to respond.');
+                    }
+                    throw error;
+                });
+
+                // Clear the timeout
+                clearTimeout(timeoutId);
+
+                // Check if the response is ok
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                // Hide loading indicator
+                loadingIndicator.style.display = 'none';
+                checkButton.disabled = false;
+
+                // Display the result
+                displayResult(data);
+
+            } catch (error) {
+                // Hide loading indicator
+                loadingIndicator.style.display = 'none';
+                checkButton.disabled = false;
+
+                // Handle specific network errors
+                if (error.message === 'Failed to fetch') {
+                    showNetworkError(processedUrl);
+                } else {
+                    showError('Error checking URL: ' + error.message);
+                }
+            }
+        }
+
+        function showError(message) {
+            const resultDiv = document.getElementById('result');
+            const resultMessage = document.getElementById('resultMessage');
+            const blacklistBtn = document.getElementById('blacklistBtn');
+
+            resultDiv.style.display = 'block';
+            resultMessage.className = 'alert alert-danger';
+            resultMessage.innerHTML = `<div class="result-content">
+                <i class="fas fa-exclamation-circle result-icon"></i>
+                <div>${message}</div>
+            </div>`;
+            blacklistBtn.style.display = 'none';
+        }
+
+        function showNetworkError(url) {
+            const resultDiv = document.getElementById('result');
+            const resultMessage = document.getElementById('resultMessage');
+            const blacklistBtn = document.getElementById('blacklistBtn');
+
+            resultDiv.style.display = 'block';
+            resultMessage.className = 'alert alert-danger';
+
+            let content = `<div class="result-content">
+                <i class="fas fa-wifi-slash result-icon"></i>
+                <div>
+                    <h5 class="mb-2">Network Error</h5>
+                    <p>Unable to connect to the server. This could be due to:</p>
+                    <ul>
+                        <li>Your internet connection is offline</li>
+                        <li>The server is temporarily unavailable</li>
+                        <li>A firewall or security software is blocking the connection</li>
+                    </ul>
+                    <p>Please check your connection and try again.</p>
+                    <div class="mt-3">
+                        <button onclick="checkURL()" class="btn btn-sm btn-primary">
+                            <i class="fas fa-sync-alt me-1"></i> Try Again
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+
+            resultMessage.innerHTML = content;
+            blacklistBtn.style.display = 'none';
+        }
+
+        function displayResult(data) {
+            const resultDiv = document.getElementById('result');
+            const resultMessage = document.getElementById('resultMessage');
+            const blacklistBtn = document.getElementById('blacklistBtn');
+
+            resultDiv.style.display = 'block';
+
+            if (data.status === 'phishing') {
+                resultMessage.className = 'alert alert-danger';
+                let content = `<div class="result-content">
+                    <i class="fas fa-exclamation-triangle result-icon"></i>
+                    <div>
+                        <h5 class="mb-2">🚨 Phishing URL Detected!</h5>`;
+
+                // Add source information
+                if (data.source) {
+                    content += `<p>This URL was primarily identified as phishing by: <strong>${data.source}</strong></p>`;
+                }
+
+                // Show which APIs were checked
+                if (data.api_results) {
+                    content += `<div class="mt-2 mb-3">
+                        <p class="mb-1"><strong>Detection Results:</strong></p>
+                        <div class="d-flex gap-2">`;
+
+                    // PhishTank status
+                    if (data.api_results.phishtank_checked) {
+                        if (data.api_results.phishtank_detected) {
+                            content += `<span class="badge bg-danger"><i class="fas fa-exclamation-circle me-1"></i> PhishTank</span>`;
+                        } else {
+                            content += `<span class="badge bg-success"><i class="fas fa-check me-1"></i> PhishTank</span>`;
+                        }
+                    } else {
+                        content += `<span class="badge bg-secondary"><i class="fas fa-times me-1"></i> PhishTank</span>`;
+                    }
+
+                    // VirusTotal status
+                    if (data.api_results.virustotal_checked) {
+                        if (data.api_results.virustotal_detected) {
+                            content += `<span class="badge bg-danger"><i class="fas fa-exclamation-circle me-1"></i> VirusTotal</span>`;
+                        } else {
+                            content += `<span class="badge bg-success"><i class="fas fa-check me-1"></i> VirusTotal</span>`;
+                        }
+                    } else {
+                        content += `<span class="badge bg-secondary"><i class="fas fa-times me-1"></i> VirusTotal</span>`;
+                    }
+
+                    content += `</div></div>`;
+                }
+
+                // Add detailed results from both APIs
+                if (data.details) {
+                    content += `<div class="mt-3">
+                        <p class="mb-2"><strong>Detailed Results:</strong></p>
+                        <div class="row">`;
+
+                    // PhishTank details
+                    if (data.details.phishtank && !data.details.phishtank.using_fallback) {
+                        content += `
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header d-flex align-items-center">
+                                    <i class="fas fa-fish me-2"></i>
+                                    <span>PhishTank Results</span>
+                                </div>
+                                <div class="card-body">`;
+
+                        if (data.details.phishtank.is_phishing) {
+                            content += `<p class="mb-1">Status: <span class="badge bg-danger">Phishing</span></p>`;
+
+                            if (data.details.phishtank.verified) {
+                                content += `<p class="mb-1"><i class="fas fa-check-circle"></i> Verified phishing URL</p>`;
+                            }
+
+                            if (data.details.phishtank.phish_detail_page) {
+                                content += `<div class="mt-2">
+                                    <a href="${data.details.phishtank.phish_detail_page}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-external-link-alt me-1"></i> View PhishTank Details
+                                    </a>
+                                </div>`;
+                            }
+                        } else {
+                            content += `<p class="mb-1">Status: <span class="badge bg-success">Safe</span></p>`;
+                        }
+
+                        content += `
+                                </div>
+                            </div>
+                        </div>`;
+                    }
+
+                    // VirusTotal details
+                    if (data.details.virustotal && !data.details.virustotal.using_fallback) {
+                        content += `
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header d-flex align-items-center">
+                                    <i class="fas fa-shield-virus me-2"></i>
+                                    <span>VirusTotal Results</span>
+                                </div>
+                                <div class="card-body">`;
+
+                        if (data.details.virustotal.is_phishing) {
+                            content += `<p class="mb-1">Status: <span class="badge bg-danger">Malicious</span></p>`;
+                        } else {
+                            content += `<p class="mb-1">Status: <span class="badge bg-success">Safe</span></p>`;
+                        }
+
+                        if (data.details.virustotal.positives !== undefined && data.details.virustotal.total !== undefined) {
+                            content += `<p class="mb-1">Security vendors: <strong>${data.details.virustotal.positives}/${data.details.virustotal.total}</strong> detected issues</p>`;
+                        }
+
+                        if (data.details.virustotal.scan_date) {
+                            content += `<p class="mb-1">Scan date: ${data.details.virustotal.scan_date}</p>`;
+                        }
+
+                        if (data.details.virustotal.permalink) {
+                            content += `<div class="mt-2">
+                                <a href="${data.details.virustotal.permalink}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-external-link-alt me-1"></i> View VirusTotal Report
+                                </a>
+                            </div>`;
+                        }
+
+                        content += `
+                                </div>
+                            </div>
+                        </div>`;
+                    }
+
+                    content += `</div></div>`;
+                }
+
+                content += `</div></div>`;
+                resultMessage.innerHTML = content;
+                blacklistBtn.style.display = 'none';
+
+            } else if (data.status === 'safe') {
+                resultMessage.className = 'alert alert-success';
+                let content = `<div class="result-content">
+                    <i class="fas fa-shield-alt result-icon"></i>
+                    <div>
+                        <h5 class="mb-2">✅ URL appears to be safe</h5>
+                        <p>No phishing indicators were found for this URL.</p>`;
+
+                // Show which APIs were checked
+                if (data.api_results) {
+                    content += `<div class="mt-2 mb-3">
+                        <p class="mb-1"><strong>Checked with:</strong></p>
+                        <div class="d-flex gap-2">`;
+
+                    if (data.api_results.phishtank_checked) {
+                        content += `<span class="badge bg-success"><i class="fas fa-check me-1"></i> PhishTank</span>`;
+                    } else {
+                        content += `<span class="badge bg-secondary"><i class="fas fa-times me-1"></i> PhishTank</span>`;
+                    }
+
+                    if (data.api_results.virustotal_checked) {
+                        content += `<span class="badge bg-success"><i class="fas fa-check me-1"></i> VirusTotal</span>`;
+                    } else {
+                        content += `<span class="badge bg-secondary"><i class="fas fa-times me-1"></i> VirusTotal</span>`;
+                    }
+
+                    content += `</div></div>`;
+
+                    // Add detailed results from both APIs if available
+                    if (data.details) {
+                        content += `<div class="mt-3">
+                            <p class="mb-2"><strong>Detailed Results:</strong></p>
+                            <div class="row">`;
+
+                        // PhishTank details
+                        if (data.details.phishtank && !data.details.phishtank.using_fallback) {
+                            content += `
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header d-flex align-items-center">
+                                        <i class="fas fa-fish me-2"></i>
+                                        <span>PhishTank Results</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-1">Status: <span class="badge bg-success">Safe</span></p>
+                                    </div>
+                                </div>
+                            </div>`;
+                        }
+
+                        // VirusTotal details
+                        if (data.details.virustotal && !data.details.virustotal.using_fallback) {
+                            content += `
+                            <div class="col-md-6 mb-3">
+                                <div class="card h-100">
+                                    <div class="card-header d-flex align-items-center">
+                                        <i class="fas fa-shield-virus me-2"></i>
+                                        <span>VirusTotal Results</span>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-1">Security vendors: <strong>${data.details.virustotal.positives || 0}/${data.details.virustotal.total || 0}</strong> detected issues</p>`;
+
+                            if (data.details.virustotal.scan_date) {
+                                content += `<p class="mb-1">Scan date: ${data.details.virustotal.scan_date}</p>`;
+                            }
+
+                            if (data.details.virustotal.permalink) {
+                                content += `<div class="mt-2">
+                                    <a href="${data.details.virustotal.permalink}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-external-link-alt me-1"></i> View Full Report
+                                    </a>
+                                </div>`;
+                            }
+
+                            content += `
+                                    </div>
+                                </div>
+                            </div>`;
+                        }
+
+                        content += `</div></div>`;
+                    }
+                }
+
+                content += `<p class="small">If you believe this URL is suspicious, you can add it to your local blacklist.</p>
+                    </div>
+                </div>`;
+
+                resultMessage.innerHTML = content;
+                blacklistBtn.style.display = 'block';
+
+            } else {
+                resultMessage.className = 'alert alert-warning';
+                let content = `<div class="result-content">
+                    <i class="fas fa-question-circle result-icon"></i>
+                    <div>
+                        <h5 class="mb-2">⚠️ Unable to verify URL</h5>`;
+
+                // Add custom message if available
+                if (data.message) {
+                    content += `<p>${data.message}</p>`;
+                }
+
+                // Check if this is an API issue
+                if (data.api_issue || (data.error && data.error.includes('API'))) {
+                    content += `<p>One or more of our security APIs are currently unavailable or experiencing issues. This is a common occurrence and doesn't mean the URL is safe.</p>`;
+                    content += `<p>We recommend:</p>
+                    <ul>
+                        <li>Try again later when the APIs might be available</li>
+                        <li>Use other online tools to verify the URL</li>
+                        <li>Be cautious with unfamiliar URLs</li>
+                    </ul>`;
+                }
+
+                // Show API status if available
+                if (data.api_results) {
+                    content += `<div class="mt-3 mb-2">
+                        <p class="mb-1"><strong>API Status:</strong></p>
+                        <div class="d-flex flex-column gap-2">`;
+
+                    // PhishTank status
+                    if (data.details && data.details.phishtank) {
+                        if (data.details.phishtank.using_fallback) {
+                            content += `<div class="d-flex align-items-center">
+                                <span class="badge bg-warning me-2"><i class="fas fa-exclamation-triangle me-1"></i> PhishTank</span>
+                                <span class="small text-muted">${data.details.phishtank.error || 'API unavailable'}</span>
+                            </div>`;
+                        } else {
+                            content += `<div>
+                                <span class="badge bg-success"><i class="fas fa-check me-1"></i> PhishTank</span>
+                            </div>`;
+                        }
+                    }
+
+                    // VirusTotal status
+                    if (data.details && data.details.virustotal) {
+                        if (data.details.virustotal.using_fallback) {
+                            content += `<div class="d-flex align-items-center">
+                                <span class="badge bg-warning me-2"><i class="fas fa-exclamation-triangle me-1"></i> VirusTotal</span>
+                                <span class="small text-muted">${data.details.virustotal.error || 'API unavailable'}</span>
+                            </div>`;
+                        } else {
+                            content += `<div>
+                                <span class="badge bg-success"><i class="fas fa-check me-1"></i> VirusTotal</span>
+                            </div>`;
+                        }
+                    }
+
+                    content += `</div></div>`;
+
+                    // Add detailed results from any working API
+                    if (data.details) {
+                        let hasWorkingApi = false;
+
+                        // Check if any API is working
+                        if ((data.details.phishtank && !data.details.phishtank.using_fallback) ||
+                            (data.details.virustotal && !data.details.virustotal.using_fallback)) {
+                            hasWorkingApi = true;
+                        }
+
+                        if (hasWorkingApi) {
+                            content += `<div class="mt-3">
+                                <p class="mb-2"><strong>Available Results:</strong></p>
+                                <div class="row">`;
+
+                            // PhishTank details
+                            if (data.details.phishtank && !data.details.phishtank.using_fallback) {
+                                content += `
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-header d-flex align-items-center">
+                                            <i class="fas fa-fish me-2"></i>
+                                            <span>PhishTank Results</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-1">Status: <span class="badge bg-success">Safe</span></p>
+                                        </div>
+                                    </div>
+                                </div>`;
+                            }
+
+                            // VirusTotal details
+                            if (data.details.virustotal && !data.details.virustotal.using_fallback) {
+                                content += `
+                                <div class="col-md-6 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-header d-flex align-items-center">
+                                            <i class="fas fa-shield-virus me-2"></i>
+                                            <span>VirusTotal Results</span>
+                                        </div>
+                                        <div class="card-body">
+                                            <p class="mb-1">Security vendors: <strong>${data.details.virustotal.positives || 0}/${data.details.virustotal.total || 0}</strong> detected issues</p>`;
+
+                                if (data.details.virustotal.scan_date) {
+                                    content += `<p class="mb-1">Scan date: ${data.details.virustotal.scan_date}</p>`;
+                                }
+
+                                if (data.details.virustotal.permalink) {
+                                    content += `<div class="mt-2">
+                                        <a href="${data.details.virustotal.permalink}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-external-link-alt me-1"></i> View Full Report
+                                        </a>
+                                    </div>`;
+                                }
+
+                                content += `
+                                        </div>
+                                    </div>
+                                </div>`;
+                            }
+
+                            content += `</div></div>`;
+                        }
+                    }
+                }
+
+                // Add a note about the local blacklist
+                content += `<p>You can manually add this URL to your local blacklist if you believe it's suspicious.</p>`;
+
+                // Add error information if available (in a collapsible section)
+                if (data.error) {
+                    content += `
+                    <div class="mt-3">
+                        <a class="text-muted" data-bs-toggle="collapse" href="#errorDetails" role="button" aria-expanded="false">
+                            <i class="fas fa-code me-1"></i> Show technical details
+                        </a>
+                        <div class="collapse mt-2" id="errorDetails">
+                            <div class="card card-body py-2 px-3 small">
+                                ${data.error}
+                            </div>
+                        </div>
+                    </div>`;
+                }
+
+                content += `</div></div>`;
+                resultMessage.innerHTML = content;
+                blacklistBtn.style.display = 'block';
+            }
+        }
+
+        async function addToBlacklist() {
+            const checkButton = document.getElementById('checkButton');
+            const blacklistBtn = document.getElementById('blacklistBtn');
+
+            // Disable buttons during the request
+            checkButton.disabled = true;
+            blacklistBtn.disabled = true;
+            blacklistBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Adding...';
+
+            try {
+                const response = await fetch('/add_to_blacklist', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: currentURL })
+                });
+
+                const data = await response.json();
+
+                // Re-enable check button
+                checkButton.disabled = false;
+
+                if (data.status === 'success') {
+                    // Show success message
+                    const resultMessage = document.getElementById('resultMessage');
+                    resultMessage.className = 'alert alert-info';
+                    resultMessage.innerHTML = `<div class="result-content">
+                        <i class="fas fa-check-circle result-icon"></i>
+                        <div>
+                            <h5 class="mb-2">URL added to blacklist</h5>
+                            <p>This URL will be detected as phishing in future checks.</p>
+                        </div>
+                    </div>`;
+
+                    // Hide the blacklist button
+                    blacklistBtn.style.display = 'none';
+                } else if (data.status === 'already_exists') {
+                    // Show already exists message
+                    const resultMessage = document.getElementById('resultMessage');
+                    resultMessage.className = 'alert alert-info';
+                    resultMessage.innerHTML = `<div class="result-content">
+                        <i class="fas fa-info-circle result-icon"></i>
+                        <div>
+                            <h5 class="mb-2">URL already in blacklist</h5>
+                            <p>This URL is already in your local blacklist.</p>
+                        </div>
+                    </div>`;
+
+                    // Hide the blacklist button
+                    blacklistBtn.style.display = 'none';
+                }
+            } catch (error) {
+                // Re-enable buttons
+                checkButton.disabled = false;
+                blacklistBtn.disabled = false;
+                blacklistBtn.innerHTML = '<i class="fas fa-ban me-2"></i> Add to Blacklist';
+
+                // Show error message
+                showError('Error adding to blacklist: ' + error.message);
+            }
+        }
+
+        // Add event listener for Enter key in the URL input
+        document.getElementById('urlInput').addEventListener('keypress', function (event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                checkURL();
+            }
+        });
+
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        const icon = themeToggle.querySelector('i');
+
+        // Check for saved theme preference or use default dark theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            body.classList.add('light-theme');
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+        }
+
+        // Toggle between light and dark themes
+        themeToggle.addEventListener('click', () => {
+            if (body.classList.contains('light-theme')) {
+                // Switch to dark theme
+                body.classList.remove('light-theme');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                // Switch to light theme
+                body.classList.add('light-theme');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                localStorage.setItem('theme', 'light');
+            }
+        });
+    </script>
+</body>
+
+</html>
