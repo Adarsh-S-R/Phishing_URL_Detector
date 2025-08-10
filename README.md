@@ -1,17 +1,17 @@
 
 <p align="center">
-  <img src="assets/image.png" alt="Phishing Detection" width="400"/>
+  <img src="assets/image.png" alt="Phishing Detection" style="width:100%;"/>
 </p>
 
-# Phishing URL Detection Application
+# Phishing URL Detector
 
-A Flask web application to check if a URL is a phishing site using PhishTank and VirusTotal APIs, with a local blacklist for fast lookups.
+A Flask web application to check if a URL is suspicious by querying PhishTank and VirusTotal, plus a quick local blacklist check.
 
 ## Features
-- Check URLs against a local blacklist
-- Query PhishTank and VirusTotal APIs for phishing detection
-- Add URLs to a local blacklist
-- Graceful fallback if APIs are unavailable or rate-limited
+- Instantly flags URLs found in a local blacklist
+- Can query PhishTank and VirusTotal for phishing reports
+- Lets you add URLs to your own blacklist
+- Falls back if APIs are down or rate-limited
 
 ## Setup
 
@@ -45,15 +45,14 @@ python app.py
 ```
 Visit [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser.
 
-## Security & Sensitive Information
-- **No sensitive API keys are included in this repository.**
-- The default VirusTotal API key in `virustotal_api.py` is a placeholder (`YOUR_VIRUSTOTAL_API_KEY`).
-- Do NOT commit your real API keys to the repository.
-- The local blacklist is stored in `blacklist.json`.
+## Security
+This repository contains no real API keys.  
+`virustotal_api.py` includes only a placeholder key (`YOUR_VIRUSTOTAL_API_KEY`).  
+Keep your actual keys private and out of version control.  
+
+The local URL blacklist is saved in `blacklist.json`.
 
 ## Notes
 - Free VirusTotal API keys are limited to 4 requests/minute.
 - PhishTank API may have daily limits and reliability issues; the app handles these gracefully.
 
-## License
-MIT License
